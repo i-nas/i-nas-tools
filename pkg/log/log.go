@@ -12,7 +12,13 @@ var _log *zap.SugaredLogger
 
 func init() {
 	var err error
-	logFile, err := os.OpenFile("./logs/i-nas-tools.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 06666)
+	defaultLogFilePath := "logs"
+	// create path if not exists
+	err = os.MkdirAll(defaultLogFilePath, 0750)
+	if err != nil && !os.IsExist(err) {
+		panic(err)
+	}
+	logFile, err := os.OpenFile(defaultLogFilePath+"/i-nas-tools.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 06666)
 	if err != nil {
 		panic("open logFile failed :" + err.Error())
 	}
