@@ -18,7 +18,7 @@
     - 下载任务自动提交
 - 消息通知
 ## 模块
-- [ ] [http服务](./pkg/http)
+- [x] [http服务](./pkg/http)
     - [ ] [用户管理](./pkg/http/user)
     - [ ] [角色管理](./pkg/http/role)
     - [ ] [媒体管理](./pkg/http/media)
@@ -31,5 +31,5 @@
 - [x] [任务执行器](./pkg/task)
 - [ ] [定时任务](./pkg/cron)
 - [ ] [下载管理](./pkg/download)
-- [ ] [日志记录](./pkg/log)
+- [x] [日志记录](./pkg/log)
 - [ ] [插件管理](./pkg/plugin)
