@@ -1,69 +1,95 @@
 package log
 
 import (
+	"os"
 	"time"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
-var log *zap.SugaredLogger
+var _log *zap.SugaredLogger
 
 func init() {
-	config := zap.NewProductionConfig()
-	config.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(time.RFC3339)
-	logger, _ := config.Build(zap.AddCallerSkip(1))
-	defer logger.Sync() // flushes buffer, if any
-	log = logger.Sugar()
+	var err error
+	logFile, err := os.OpenFile("./logs/i-nas-tools.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 06666)
+	if err != nil {
+		panic("open logFile failed :" + err.Error())
+	}
+	encoderConfig := zap.NewProductionEncoderConfig()
+	encoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(time.RFC3339)
+	jsonEncoder := zapcore.NewJSONEncoder(encoderConfig)
+	stdoutLogLevelString := os.Getenv("LOG_LEVEL")
+	stdoutLogLevel, err := zapcore.ParseLevel(stdoutLogLevelString)
+	if err != nil {
+		stdoutLogLevel = zapcore.InfoLevel
+	}
+	filterPriority := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+		return lvl >= stdoutLogLevel && lvl < zapcore.ErrorLevel
+	})
+	teecore := zapcore.NewTee(
+		zapcore.NewCore(jsonEncoder, zapcore.AddSync(logFile), zap.DebugLevel),
+		zapcore.NewCore(jsonEncoder, zapcore.AddSync(os.Stdout), filterPriority),
+		zapcore.NewCore(jsonEncoder, zapcore.AddSync(os.Stderr), zap.ErrorLevel),
+	)
+	logger := zap.New(
+		teecore,
+		zap.AddCaller(),
+		zap.AddCallerSkip(1),
+		zap.AddStacktrace(zapcore.ErrorLevel),
+	)
+	zap.ReplaceGlobals(logger)
+	_log = logger.Sugar()
+	zap.RedirectStdLog(logger)
 }
 
 func Debug(args ...interface{}) {
-	log.Debug(args...)
+	_log.Debug(args...)
 }
 func Debugf(template string, args ...interface{}) {
-	log.Debugf(template, args...)
+	_log.Debugf(template, args...)
 }
 
 func Info(args ...interface{}) {
-	log.Info(args...)
+	_log.Info(args...)
 }
 
 func Infof(template string, args ...interface{}) {
-	log.Infof(template, args...)
+	_log.Infof(template, args...)
 }
 
 func Warn(args ...interface{}) {
-	log.Warn(args...)
+	_log.Warn(args...)
 }
 func Warnf(template string, args ...interface{}) {
-	log.Warnf(template, args...)
+	_log.Warnf(template, args...)
 }
 
 func Error(args ...interface{}) {
-	log.Error(args...)
+	_log.Error(args...)
 }
 func Errorf(template string, args ...interface{}) {
-	log.Errorf(template, args...)
+	_log.Errorf(template, args...)
 }
 
 func DPanic(args ...interface{}) {
-	log.DPanic(args...)
+	_log.DPanic(args...)
 }
 func DPanicf(template string, args ...interface{}) {
-	log.DPanicf(template, args...)
+	_log.DPanicf(template, args...)
 }
 
 func Panic(args ...interface{}) {
-	log.Panic(args...)
+	_log.Panic(args...)
 }
 func Panicf(template string, args ...interface{}) {
-	log.Panicf(template, args...)
+	_log.Panicf(template, args...)
 }
 
 func Fatal(args ...interface{}) {
-	log.Fatal(args...)
+	_log.Fatal(args...)
 }
 
 func Fatalf(template string, args ...interface{}) {
-	log.Fatalf(template, args...)
+	_log.Fatalf(template, args...)
 }
